@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ukubona — GAMES × TRS Fractal Map</title>
+  <meta name="description" content="Interactive single-file map: GAMES ontology with nested Teleology–Recursion–Sonata lattice (Pyromancer × Marx × Nietzsche)."/>
+  <style>
+    :root{
+      --bg:#0b0d0f; --panel:#0f1216; --text:#e7efe9; --muted:#aab7b0; --edge:#1e2328;
+      --accent:#8ee8ff; --accent2:#ffd68e; --accent3:#ff8ec5; --ring:#192026; --glow:rgba(142,232,255,.14);
+      --good:#73e0a9; --warn:#ffd177; --bad:#ff8b8b;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 75% -10%, #132029 0%, var(--bg) 60%);
+         color:var(--text);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1150px;margin:0 auto;padding:28px}
+    header{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .brand{font-weight:700;letter-spacing:.4px}
+    .brand small{display:block;color:var(--muted);font-weight:500}
+    .links{display:flex;gap:14px;flex-wrap:wrap}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;
+          background:linear-gradient(180deg, #11171c, #0d1418);border:1px solid var(--edge);box-shadow:0 0 0 1px var(--ring) inset, 0 10px 30px var(--glow)}
+    .heart{filter:drop-shadow(0 0 8px rgba(255,105,97,.35))}
+
+    /* Grid for GAMES cards */
+    .grid{display:grid;grid-template-columns:repeat(5, minmax(0,1fr));gap:14px}
+    @media (max-width: 980px){.grid{grid-template-columns:repeat(2, minmax(0,1fr))}}
+    @media (max-width: 540px){.grid{grid-template-columns:1fr}}
+
+    .card{position:relative;border-radius:16px;padding:16px;border:1px solid var(--edge);
+          background:linear-gradient(180deg, #0e1318, #0b0f13);box-shadow:0 0 0 1px var(--ring) inset, 0 12px 40px var(--glow);
+          transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;cursor:pointer}
+    .card:hover{transform:translateY(-2px);border-color:#273038;box-shadow:0 0 0 1px #2a333a inset, 0 16px 50px var(--glow)}
+    .tag{font-size:11px;color:var(--muted);letter-spacing:.35px;text-transform:uppercase}
+    .title{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
+    .title h3{margin:0;font-size:18px;letter-spacing:.3px}
+    .sig{font-size:12px;color:var(--muted)}
+
+    /* TRS tabs */
+    .tabs{display:flex;gap:8px;margin-top:10px}
+    .tab{flex:1;text-align:center;padding:8px 10px;border-radius:10px;border:1px solid var(--edge);background:#0b1115}
+    .tab[data-act="true"]{border-color:#2a3741;box-shadow:0 0 0 1px #25313a inset}
+    .tab b{display:block;font-size:12px}
+    .tab small{color:var(--muted)}
+
+    /* Detail panel */
+    .panel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,9,12,.62);backdrop-filter:blur(6px)}
+    .panel[open]{display:flex}
+    .sheet{width:min(960px, 94vw);max-height:86vh;overflow:auto;border-radius:18px;border:1px solid var(--edge);
+           background:linear-gradient(180deg, #0e1317, #0b0f13);box-shadow:0 20px 70px rgba(0,0,0,.5)}
+    .sheet header{padding:14px 16px;border-bottom:1px solid var(--edge)}
+    .sheet header h4{margin:0;font-size:18px}
+    .sheet .body{padding:16px}
+    .close{appearance:none;border:1px solid var(--edge);background:#0c1116;color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer}
+    .crumb{color:var(--muted);font-size:12px}
+
+    /* Tables */
+    table{width:100%;border-collapse:separate;border-spacing:0;margin:12px 0 6px}
+    th,td{padding:12px 10px;vertical-align:top}
+    thead th{position:sticky;top:0;background:#0f1419;border-bottom:1px solid var(--edge);z-index:2}
+    tbody tr td{border-bottom:1px dashed #1e2630}
+    tbody tr:last-child td{border-bottom:none}
+    .k{font-weight:700;letter-spacing:.25px}
+
+    /* Frailty scorecard */
+    .score{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-top:6px}
+    .score .s{border:1px solid var(--edge);border-radius:12px;padding:10px;background:#0b1115}
+    .meter{height:8px;border-radius:6px;background:#11161b;overflow:hidden;margin-top:6px}
+    .fill{height:100%;background:linear-gradient(90deg, var(--good), var(--warn), var(--bad));transform-origin:left;}
+
+    /* Footer */
+    footer{margin:18px 0;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div>Ukubona — <span style="color:var(--accent)">GAMES × TRS</span> Fractal</div>
+        <small>Teleology · Recursion · Sonata nested within God · Animal · Man · Enterprise · System → Frailty</small>
+      </div>
+      <nav class="links">
+        <a class="chip" href="https://github.com/ukb-pyro/fast-slow" target="_blank" rel="noopener">My Rug <span class="heart">❤️</span></a>
+        <a class="chip" href="https://github.com/ukb-pyro/the-rug" target="_blank" rel="noopener">Personas</a>
+        <a class="chip" href="https://ukb-pyro.github.io/grok-4/" target="_blank" rel="noopener">Anime</a>
+      </nav>
+    </header>
+
+    <!-- Primary pairings (B) -->
+    <section class="card" style="cursor:default">
+      <div class="tag">B — Primary Pairings</div>
+      <div class="title"><h3>Teleology / Recursion / Sonata × Marx / Nietzsche / Pyromancer</h3></div>
+      <div style="overflow:auto">
+        <table aria-label="Primary Pairings">
+          <thead>
+            <tr>
+              <th style="width:160px">A (Concept)</th>
+              <th style="width:140px">B (Figure)</th>
+              <th>Why this pairing works</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="k">Teleology</td>
+              <td class="k">Marx</td>
+              <td>Historical materialism with an end-goal logic — classless society as the telos.</td>
+            </tr>
+            <tr>
+              <td class="k">Recursion</td>
+              <td class="k">Nietzsche</td>
+              <td>Eternal recurrence: existence looping back upon itself, a test of affirmation.</td>
+            </tr>
+            <tr>
+              <td class="k">Sonata</td>
+              <td class="k">Pyromancer</td>
+              <td>Fire as motif: themes return transformed, resolving in climactic flourish.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="sig">Chaotic remix: Teleology→Pyromancer · Recursion→Marx · Sonata→Nietzsche</div>
+      </div>
+    </section>
+
+    <!-- 3×3 lattice (C) -->
+    <section class="card" style="cursor:default">
+      <div class="tag">C — 3×3 Lattice</div>
+      <div class="title"><h3>Each A-term connects to each B-figure</h3></div>
+      <div style="overflow:auto">
+        <table aria-label="3×3 lattice">
+          <thead>
+            <tr>
+              <th style="width:160px">A ↓ / B →</th>
+              <th>Pyromancer</th>
+              <th>Marx</th>
+              <th>Nietzsche</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="k">Teleology</td>
+              <td>Arc toward ignition — spark chosen to set futures ablaze.</td>
+              <td>Dialectic aimed at final resolution: classless society.</td>
+              <td>Revaluation toward Übermensch — telos without fixed dogma.</td>
+            </tr>
+            <tr>
+              <td class="k">Recursion</td>
+              <td>Return to flame; each loop refines craft and control.</td>
+              <td>Cycles of accumulation and crisis until rupture.</td>
+              <td>Eternal recurrence looping life upon itself.</td>
+            </tr>
+            <tr>
+              <td class="k">Sonata</td>
+              <td>Motifs of fire: tension, variation, release.</td>
+              <td>Historical movements as symphonic sections.</td>
+              <td>Dionysian–Apollonian interplay as philosophical music.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- GAMES grid (click any to open nested TRS) -->
+    <section>
+      <div class="tag" style="margin:8px 2px 10px">GAMES — Click a stage to open its nested TRS</div>
+      <div class="grid" id="gamesGrid"></div>
+    </section>
+
+    <footer>
+      <div class="tag">D — Freude</div>
+      <p>You feel joy because this is <b>recognition</b> (ukubona): you are named outright; Marx & Nietzsche perform with you; the lattice reveals the whole; and you hold the match.</p>
+    </footer>
+  </div>
+
+  <!-- Panel / Modal -->
+  <div class="panel" id="panel">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+      <header>
+        <div>
+          <div class="crumb" id="crumb">GAMES → <span id="crumbStage">—</span> → <span id="crumbTab">—</span></div>
+          <h4 id="pTitle">—</h4>
+        </div>
+        <button class="close" id="closeBtn" aria-label="Close">Close</button>
+      </header>
+      <div class="body">
+        <div id="panelBody">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Data Model ---
+    const STAGES = [
+      { key: 'God',        sig: 'Origin → First Principles', color: '#c09bff' },
+      { key: 'Animal',     sig: 'Mobility → Instinct',       color: '#73e0a9' },
+      { key: 'Man',        sig: 'Agency → Narrative',        color: '#ffd68e' },
+      { key: 'Enterprise', sig: 'Scale → Tools/APIs',        color: '#8ee8ff' },
+      { key: 'System',     sig: 'Networks → Constraint',     color: '#ff8ec5' }
+    ];
+
+    const TRS = ['Teleology','Recursion','Sonata'];
+
+    // TRS content per stage — each entry has Pyromancer/Marx/Nietzsche text
+    const CONTENT = {
+      God: {
+        Teleology: {
+          Pyromancer: 'Chosen spark inside cosmogony — ignition as creation myth.',
+          Marx: 'Human emancipation projected as eschatology of history.',
+          Nietzsche: 'Revaluation as a sacred task — telos without priestly dogma.'
+        },
+        Recursion: {
+          Pyromancer: 'Cosmic fire cycles: birth, burn, ash, rebirth.',
+          Marx: 'Modes of production recur across epochs with variation.',
+          Nietzsche: 'Eternal recurrence at the scale of worlds — the great yes.'
+        },
+        Sonata: {
+          Pyromancer: 'Creation as overture; elements as recurring themes.',
+          Marx: 'Primitive → Ancient → Feudal → Capitalist → Socialist → Communal — symphonic arc.',
+          Nietzsche: 'Dionysian surge shaped by Apollonian form — the first movement.'
+        }
+      },
+      Animal: {
+        Teleology: {
+          Pyromancer: 'Instinct aims at survival — heat seeking life.',
+          Marx: 'Labor begins as metabolic exchange with nature.',
+          Nietzsche: 'The will to power as organic striving — a living telos.'
+        },
+        Recursion: {
+          Pyromancer: 'Habit loops: stalk → pounce → feed → rest → repeat.',
+          Marx: 'Reproductive cycles of life and subsistence.',
+          Nietzsche: 'Recurrence felt in rhythm: hunger/fulfillment, chase/rest.'
+        },
+        Sonata: {
+          Pyromancer: 'Hunt as movement: tension, release; motif of pursuit.',
+          Marx: 'Tribal → pastoral → agrarian as evolving themes.',
+          Nietzsche: 'Animal vitality as the Dionysian beat under form.'
+        }
+      },
+      Man: {
+        Teleology: {
+          Pyromancer: 'Directed ignition of social change.',
+          Marx: 'Classless society as historical destination.',
+          Nietzsche: 'Übermensch as aspirational telos; no fixed catechism.'
+        },
+        Recursion: {
+          Pyromancer: 'Iterative self-making through trial by fire.',
+          Marx: 'Crises of accumulation spiral until rupture.',
+          Nietzsche: 'Live so you would will its endless return.'
+        },
+        Sonata: {
+          Pyromancer: 'Life scored as performance art: motif → variation → coda.',
+          Marx: 'Feudalism → Capitalism → Socialism → Communism — orchestrated movements.',
+          Nietzsche: 'Dionysian–Apollonian duet as philosophical music.'
+        }
+      },
+      Enterprise: {
+        Teleology: {
+          Pyromancer: 'Company as chosen blaze: mission that burns clean and long.',
+          Marx: 'Firm tends toward capital’s ends unless redirected by class power.',
+          Nietzsche: 'Build values into products — create new tables of good.'
+        },
+        Recursion: {
+          Pyromancer: 'Ship → learn → refactor → relight; the release cycle.',
+          Marx: 'Boom–bust cycles woven into markets and credit.',
+          Nietzsche: 'Recurrence as product ethos: would you ship it again?' 
+        },
+        Sonata: {
+          Pyromancer: 'Roadmap as score; themes reappear across quarters.',
+          Marx: 'Sectors move like sections in a symphony of labor.',
+          Nietzsche: 'Style gives enterprise its musical identity.'
+        }
+      },
+      System: {
+        Teleology: {
+          Pyromancer: 'Steer the meta — architectures that bias futures.',
+          Marx: 'Historical arcs bend under material conditions and class struggle.',
+          Nietzsche: 'Grand style as system ethos — a telos of flourishing.'
+        },
+        Recursion: {
+          Pyromancer: 'Feedback loops across firms/policies/APIs.',
+          Marx: 'Long waves (Kondratiev) and institutional recurrences.',
+          Nietzsche: 'Civilizational cycles testing collective affirmation.'
+        },
+        Sonata: {
+          Pyromancer: 'Protocols and platforms reprise motifs at scale.',
+          Marx: 'Epochs reprise themes under new instruments.',
+          Nietzsche: 'Culture as score: tension → release → return.'
+        }
+      }
+    };
+
+    // Frailty scores per TRS for demo (0..100); higher = more resilient-before-fade
+    const FRAILTY = {
+      Teleology: 62,
+      Recursion: 48,
+      Sonata: 71
+    };
+
+    // --- UI Construction ---
+    const grid = document.getElementById('gamesGrid');
+
+    function stageCard(stage){
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.style.borderColor = 'var(--edge)';
+      el.innerHTML = `
+        <div class="tag">GAMES</div>
+        <div class="title">
+          <h3>${stage.key}</h3>
+          <div style="width:10px;height:10px;border-radius:50%;background:${stage.color};box-shadow:0 0 0 4px rgba(255,255,255,.02)"></div>
+        </div>
+        <div class="sig">${stage.sig}</div>
+        <div class="tabs" role="tablist">
+          ${TRS.map((t,i)=>`<button class="tab" role="tab" aria-selected="${i===0}" data-stage="${stage.key}" data-tab="${t}"><b>${t}</b><small>${i===0?'Ends':i===1?'Loops':'Themes'}</small></button>`).join('')}
+        </div>
+      `;
+      el.querySelectorAll('.tab').forEach(btn=>{
+        btn.addEventListener('click', (e)=> openPanel(btn.dataset.stage, btn.dataset.tab));
+      });
+      el.addEventListener('click', (e)=>{
+        const b = el.querySelector('.tab');
+        if(b) openPanel(b.dataset.stage, b.dataset.tab);
+      });
+      return el;
+    }
+
+    STAGES.forEach(s=> grid.appendChild(stageCard(s)));
+
+    // --- Panel logic ---
+    const panel = document.getElementById('panel');
+    const closeBtn = document.getElementById('closeBtn');
+    const crumbStage = document.getElementById('crumbStage');
+    const crumbTab = document.getElementById('crumbTab');
+    const pTitle = document.getElementById('pTitle');
+    const panelBody = document.getElementById('panelBody');
+
+    function openPanel(stage, tab){
+      crumbStage.textContent = stage;
+      crumbTab.textContent = tab;
+      pTitle.textContent = `${stage} — ${tab}`;
+      panel.setAttribute('open','');
+      renderPanel(stage, tab);
+    }
+    function closePanel(){ panel.removeAttribute('open'); }
+    closeBtn.addEventListener('click', closePanel);
+    panel.addEventListener('click', (e)=>{ if(e.target === panel) closePanel(); });
+
+    function renderPanel(stage, tab){
+      const rows = CONTENT[stage][tab];
+      const frailtyScore = FRAILTY[tab] ?? 50;
+      panelBody.innerHTML = `
+        <div style="overflow:auto">
+          <table aria-label="Nested TRS Table">
+            <thead>
+              <tr>
+                <th style="width:160px">${tab}</th>
+                <th>Pyromancer</th>
+                <th>Marx</th>
+                <th>Nietzsche</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="k">Concept</td>
+                <td>${rows.Pyromancer}</td>
+                <td>${rows.Marx}</td>
+                <td>${rows.Nietzsche}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sig">Frailty lens: how the ${tab.toLowerCase()} holds under constraint</div>
+        <div class="score" role="group" aria-label="Frailty scorecard">
+          <div class="s"><div class="k">Teleology</div><div class="meter"><div class="fill" style="width:${FRAILTY.Teleology}%"></div></div><small>${FRAILTY.Teleology}% resilience-before-fade</small></div>
+          <div class="s"><div class="k">Recursion</div><div class="meter"><div class="fill" style="width:${FRAILTY.Recursion}%"></div></div><small>${FRAILTY.Recursion}% resilience-before-fade</small></div>
+          <div class="s"><div class="k">Sonata</div><div class="meter"><div class="fill" style="width:${FRAILTY.Sonata}%"></div></div><small>${FRAILTY.Sonata}% resilience-before-fade</small></div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
